@@ -17,6 +17,9 @@ display_width = num_data_pts
 display_y_min = 0
 display_y_max = 65535
 
+# How often the graphing utility check for new data and updates the graph.
+graph_update_interval_ms = 20
+
 
 
 # Setup Plottng Utility
@@ -77,7 +80,7 @@ def updatePlot(arg):
     manager.canvas.draw()
 
 
-timer = fig.canvas.new_timer(interval=20)
+timer = fig.canvas.new_timer(interval=graph_update_interval_ms)
 timer.add_callback(updatePlot, ())
 timer.start()
 
