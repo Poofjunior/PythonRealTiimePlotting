@@ -7,6 +7,8 @@ import pylab
 import serial
 from pylab import *
 from collections import deque
+from matplotlib.lines import Line2D
+
 
 # Serial Data Settings
 serial_port_name = "/dev/ttyACM0"
@@ -23,16 +25,17 @@ graph_update_interval_ms = 20
 
 
 # Setup Plottng Utility
-xAchse=pylab.arange(0,100,1)
-yAchse=pylab.array([0]*100)
+x_axis = pylab.arange(0,100,1)
+y_axis = pylab.array([0]*100)
 fig = pylab.figure(1)
-ax = fig.add_subplot(111)
-ax.grid(True)
-ax.set_title("Realtime Waveform Plot")
-ax.set_xlabel("Time")
-ax.set_ylabel("Amplitude")
-ax.axis([0,display_width,display_y_min,display_y_max])
-line1=ax.plot(xAchse,yAchse,'-')
+top = fig.add_subplot(212)
+bottom = fig.add_subplot(211)
+top.grid(True)
+top.set_title("Real Time Plot")
+top.set_xlabel("Time [us]")
+top.set_ylabel("Amplitude")
+line1 = Line2D([], [], color='black')
+top.add_line(line1)
 
 manager = pylab.get_current_fig_manager()
 
@@ -72,11 +75,11 @@ def getNewData():
 
 
 def updatePlot(arg):
-    global incoming_data, incoming_timestamp
+    global incoming_data, incoming_timestamp, line1, top, manager
     getNewData()
 # Setup x and y data to be plotted.
-    line1[0].set_data(incoming_timestamp,incoming_data)
-    ax.axis([incoming_timestamp[0], incoming_timestamp[-1],display_y_min,display_y_max])
+    line1.set_data(incoming_timestamp,incoming_data)
+    top.axis([incoming_timestamp[0], incoming_timestamp[-1],display_y_min,display_y_max])
     manager.canvas.draw()
 
 
