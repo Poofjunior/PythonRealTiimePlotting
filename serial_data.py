@@ -29,18 +29,26 @@ x_axis = pylab.arange(0,100,1)
 y_axis = pylab.array([0]*100)
 fig = pylab.figure(1)
 top = fig.add_subplot(212)
-bottom = fig.add_subplot(211)
 top.grid(True)
-top.set_title("Real Time Plot")
+top.set_title("Torque")
 top.set_xlabel("Time [us]")
 top.set_ylabel("Amplitude")
 line1 = Line2D([], [], color='black')
 top.add_line(line1)
 
+bottom = fig.add_subplot(211)
+bottom.grid(True)
+bottom.set_title("Speed")
+bottom.set_xlabel("Time [us]")
+bottom.set_ylabel("Amplitude")
+line2 = Line2D([], [], color='black')
+bottom.add_line(line2)
+
 manager = pylab.get_current_fig_manager()
 
 # Create a rolling buffer for the input y-axis data.
-incoming_data = deque(pylab.arange(0,num_data_pts,1))
+incoming_data = [deque(pylab.arange(0,num_data_pts,1)),
+                 deque(pylab.arange(0,num_data_pts,1))]
 incoming_timestamp = deque(pylab.arange(0,num_data_pts,1))
 
 # Setup Serial Port
@@ -64,11 +72,14 @@ def getNewData():
         serial_data_type = serial_data_type.lstrip("[")
         serial_data_type = serial_data_type.rstrip("]")
         # Discern timestamp from data
-        if (int(serial_data_type) == 0): # data!
+        if (int(serial_data_type) == 0): # first plot data!
             # Second stripped value is actual data. Append it.
-            incoming_data.append(int(serial_line_data[1]))
+            incoming_data[0].append(int(serial_line_data[1]))
             # Remove old data at the start of the ring buffer.
-            incoming_data.popleft()
+            incoming_data[0].popleft()
+        elif (int(serial_data_type) == 1): # second plot data!
+            incoming_data[1].append(int(serial_line_data[1]))
+            incoming_data[1].popleft()
         else: # timestamp!
             incoming_timestamp.append(int(serial_line_data[1]))
             incoming_timestamp.popleft()
@@ -78,8 +89,10 @@ def updatePlot(arg):
     global incoming_data, incoming_timestamp, line1, top, manager
     getNewData()
 # Setup x and y data to be plotted.
-    line1.set_data(incoming_timestamp,incoming_data)
+    line1.set_data(incoming_timestamp,incoming_data[0])
+    line2.set_data(incoming_timestamp,incoming_data[1])
     top.axis([incoming_timestamp[0], incoming_timestamp[-1],display_y_min,display_y_max])
+    bottom.axis([incoming_timestamp[0], incoming_timestamp[-1],display_y_min,display_y_max])
     manager.canvas.draw()
 
 
